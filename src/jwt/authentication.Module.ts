@@ -15,7 +15,7 @@ import { RefreshToken } from './entity/refreshToken.entity';
     PassportModule,
     TypeOrmModule.forFeature([RefreshToken]),
     JwtModule.register({
-      secret: process.env.JWT_SECRET || 'theNsawamRoadApi',
+      secret: process.env.JWT_SECRET || 'theEmmanuellaProject',
       signOptions: {
         expiresIn: '60m',
       },

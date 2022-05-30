@@ -29,12 +29,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 }
 
-export interface JwtPayload {
-  username: string;
-  status: Status;
-}
-
 export enum Status {
   ADMIN = 'ADMIN',
   STAFF = 'STAFF',
+  SUPER_ADMIN = 'SUPER_ADMIN',
 }

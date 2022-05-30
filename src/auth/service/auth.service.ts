@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthRepository } from '../repository/auth.repository';
 import { Auth } from '../entity/auth.entity';
@@ -62,22 +58,5 @@ export class AuthService {
       delete user.salt;
     }
     return staff;
-  }
-
-  async deleteStaff(id: string): Promise<any> {
-    const result = await this.authRepository.delete({ id });
-    if (result.affected === 0) {
-      throw new NotFoundException(`Staff with ID "${id}" not found`);
-    }
-    return { id, message: 'Deleted' };
-  }
-
-  async updateStaff(data: Auth): Promise<Auth> {
-    const staff = await this.findById(data.id);
-    staff.email = data.email;
-    staff.mobile = data.mobile;
-    staff.username = data.username;
-    staff.status = data.status;
-    return await this.authRepository.signUp(staff);
   }
 }
