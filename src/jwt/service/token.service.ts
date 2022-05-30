@@ -1,21 +1,16 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  UnprocessableEntityException,
-} from '@nestjs/common';
+import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { Auth } from '../../auth/entity/auth.entity';
 import { SignOptions, TokenExpiredError } from 'jsonwebtoken';
 import { RefreshToken } from '../entity/refreshToken.entity';
 import { RefreshTokenPayload } from '../interface/refreshTokenPayload';
-import e from 'express';
 import { AuthService } from '../../auth/service/auth.service';
 import { AuthenticationPayload } from '../interface/authenticationPayload.interface';
 
 const BASE_OPTIONS = {
-  issuer: 'https://nsawam-road-coc-backend.herokuapp.com',
-  audience: 'https://nr-data.herokuapp.com',
+  issuer: '', // Todo: put the base url of the hosted backend here
+  audience: '', // Todo: put the base url of the hosted frontend here,
 };
 
 @Injectable()
@@ -31,16 +26,6 @@ export class TokenService {
     const opts: SignOptions = {
       ...BASE_OPTIONS,
       subject: String(user.id),
-    };
-    return this.jwt.signAsync({}, opts);
-  }
-
-  async generateRefreshToken(user: Auth, expiresIn: number): Promise<string> {
-    const token = await this.createRefreshToken(user, expiresIn);
-    const opts: SignOptions = {
-      ...BASE_OPTIONS,
-      subject: String(user.id),
-      jwtid: String(token.id),
     };
     return this.jwt.signAsync({}, opts);
   }
@@ -64,21 +49,13 @@ export class TokenService {
     return { user, token };
   }
 
-  async createAccessTokenFromRefreshToken(
-    refresh: string,
-  ): Promise<{ token: string; user: Auth }> {
-    const { user } = await this.resolveRefreshToken(refresh);
-    const token = await this.generateAccessToken(user);
-    return { user, token };
-  }
-
   private async decodeRefreshToken(
     token: string,
   ): Promise<RefreshTokenPayload> {
     try {
       return await this.jwt.verifyAsync(token);
     } catch (err) {
-      if (e instanceof TokenExpiredError)
+      if (err instanceof TokenExpiredError)
         throw new UnprocessableEntityException('Refresh token expired');
       else throw new UnprocessableEntityException('Refresh token malformed');
     }
@@ -115,25 +92,6 @@ export class TokenService {
         ...(refreshToken ? { refresh_token: refreshToken } : {}),
       },
     };
-  }
-
-  async createRefreshToken(user: Auth, ttl: number): Promise<RefreshToken> {
-    const token = new RefreshToken();
-
-    token.user_id = user.id;
-    token.is_revoked = false;
-
-    const expiration = new Date();
-    expiration.setTime(expiration.getTime() + ttl);
-
-    token.expires = expiration;
-
-    try {
-      await token.save();
-      return token;
-    } catch (e) {
-      throw new InternalServerErrorException();
-    }
   }
 
   async findTokenById(user_id: string): Promise<RefreshToken | null> {
